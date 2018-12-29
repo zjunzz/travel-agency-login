@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ta-login
+  labels:
+    run: ta-login
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: ta-login
+    spec:
+      containers:
+      - image: $OKE_REPOSITORY/$WERCKER_APPLICATION_NAME:$WERCKER_GIT_BRANCH-$WERCKER_GIT_COMMIT
+        #imagePullPolicy: IfNotPresent 
+        imagePullPolicy: Always 
+        name: ta-flight
+        ports:
+        - containerPort: 8999
+          protocol: TCP
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: ocirsecret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: login
+spec:
+  selector:
+    run: ta-login
+  ports:
+    - port: 9001
+      targetPort: 8999
+  type: ClusterIP
